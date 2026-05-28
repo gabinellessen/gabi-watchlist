@@ -9,6 +9,8 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# garante que a pasta public exista (o scaffold pode nao te-la criado)
+RUN mkdir -p public
 
 # NEXT_PUBLIC_* precisa estar disponível em build-time
 ARG NEXT_PUBLIC_API_BASE_URL
