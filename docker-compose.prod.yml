@@ -1,0 +1,34 @@
+# Producao numa instancia EC2: roda backend (porta 80) e front (porta 3000) com Docker.
+# O banco e o Amazon RDS (NAO sobe Postgres aqui). O build e feito na propria EC2.
+#
+# Fase 1 (antes do API Gateway) - sobe SO o backend:
+#   export DB_HOST=watchlist-db.czjhbkmwbqxm.us-east-1.rds.amazonaws.com
+#   export DB_PASSWORD='<senha-do-rds>'
+#   docker compose -f docker-compose.prod.yml up -d --build api
+#
+# Fase 2 (depois de criar o API Gateway) - sobe o front com a URL real:
+#   export NEXT_PUBLIC_API_BASE_URL=https://xxxx.execute-api.us-east-1.amazonaws.com/prod
+#   docker compose -f docker-compose.prod.yml up -d --build front
+
+services:
+  api:
+    build:
+      context: ./src/backend
+    ports:
+      - "80:80"
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: watchlist
+    restart: unless-stopped
+
+  front:
+    build:
+      context: ./src/frontend
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
