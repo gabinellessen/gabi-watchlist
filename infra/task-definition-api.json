@@ -15,7 +15,7 @@
         { "containerPort": 80, "protocol": "tcp" }
       ],
       "environment": [
-        { "name": "DB_HOST",     "value": "<RDS_ENDPOINT>" },
+        { "name": "DB_HOST",     "value": "watchlist-db.czjhbkmwbqxm.us-east-1.rds.amazonaws.com" },
         { "name": "DB_PORT",     "value": "5432" },
         { "name": "DB_USER",     "value": "postgres" },
         { "name": "DB_PASSWORD", "value": "<DB_PASSWORD>" },

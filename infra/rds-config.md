@@ -13,7 +13,7 @@
 | Nome do banco inicial | `watchlist` |
 | Usuário mestre | `postgres` |
 | Senha mestre | armazenada fora do repo (gerenciador de senhas) |
-| Endpoint | `<a preencher quando ficar Disponível>` |
+| Endpoint | `watchlist-db.czjhbkmwbqxm.us-east-1.rds.amazonaws.com` |
 | **Criptografia em repouso** | **Desabilitada** (limitação do Learner Lab — `LabRole` sem acesso à KMS key padrão `aws/rds`. Em produção, habilitaria com KMS customer-managed.) |
 
 ## Variáveis de ambiente do backend (entram na ECS Task Definition)
