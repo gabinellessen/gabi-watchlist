@@ -1,0 +1,54 @@
+name: Deploy Backend (build & push ECR)
+
+# Builda a imagem do backend (FastAPI) e envia pro Amazon ECR.
+# O deploy no ECS é feito no console (Update service -> Force new deployment),
+# que puxa a tag :latest mais recente.
+#
+# Dispara automaticamente em mudanças no backend, ou manualmente (Run workflow).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/backend/**"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: gabi-watchlist-api
+
+jobs:
+  build-and-push:
+    name: Build & push backend image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: "true"
+
+      - name: Build, tag and push backend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        working-directory: ./src/backend
+        run: |
+          docker build \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" .
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "Imagem enviada: $ECR_REGISTRY/$ECR_REPOSITORY:latest"

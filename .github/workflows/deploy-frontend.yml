@@ -1,0 +1,58 @@
+name: Deploy Frontend (build & push ECR)
+
+# Builda a imagem do front (Next.js 15) e envia pro Amazon ECR.
+# A URL do API Gateway entra como build-arg (NEXT_PUBLIC_API_BASE_URL),
+# pois variaveis NEXT_PUBLIC_* sao "assadas" no build.
+# Por isso, o front so deve ser buildado DEPOIS que o API Gateway existir
+# (configurar o secret NEXT_PUBLIC_API_BASE_URL antes de rodar).
+#
+# Dispara em mudancas no front, ou manualmente (Run workflow).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/frontend/**"
+      - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: gabi-watchlist-front
+
+jobs:
+  build-and-push:
+    name: Build & push frontend image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: "true"
+
+      - name: Build, tag and push frontend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+        working-directory: ./src/frontend
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_BASE_URL="$NEXT_PUBLIC_API_BASE_URL" \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" .
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "Imagem enviada: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
