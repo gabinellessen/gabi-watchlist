@@ -107,12 +107,13 @@ Console → **RDS** → **Subnet groups** → **Create DB subnet group**:
 
 RDS → **Databases** → **Create database**:
 - Engine: **PostgreSQL** (versão 15.x)
-- Templates: **Free tier**
-- DB instance identifier: `watchlist-db`
-- Master username: `admin`
-- Master password: gerar e **ANOTAR** (não commitar)
-- Instance class: `db.t3.micro`
-- Storage: 20 GB gp3
+- Modelos: **Dev/Test** (no Learner Lab a opção *Sandbox*/Free tier bloqueia `db.t3.micro`)
+- Identificador da instância: `watchlist-db`
+- Nome do usuário mestre: `postgres` (não use `admin` — é palavra reservada do Postgres)
+- Senha mestre: gerar forte e **anotar fora do repo** (gerenciador de senhas)
+- Classe da instância: **db.t3.micro** (Classes burstable)
+- Armazenamento: 20 GB gp3
+- **Configuração adicional → Criptografia:** **desabilitar** (no Learner Lab o `LabRole` não acessa a KMS key padrão `aws/rds`)
 - **Connectivity:**
   - VPC: `watchlist-vpc`
   - Subnet group: `watchlist-db-subnet-group`
@@ -182,7 +183,7 @@ Configurações relevantes:
 - Launch type: FARGATE, awsvpc, 256 CPU / 512 MEM
 - Execution & task role: `arn:aws:iam::172560331362:role/LabRole`
 - Container `watchlist-api`, image `172560331362.dkr.ecr.us-east-1.amazonaws.com/gabi-watchlist-api:latest`, port 80
-- Env vars: `DB_HOST`, `DB_PORT=5432`, `DB_USER=admin`, `DB_PASSWORD=<senha>`, `DB_NAME=watchlist`
+- Env vars: `DB_HOST`, `DB_PORT=5432`, `DB_USER=postgres`, `DB_PASSWORD=<senha>`, `DB_NAME=watchlist`
 - Log group `/ecs/watchlist-api` (criar automaticamente)
 
 ### 5.3 Service `watchlist-api-service`

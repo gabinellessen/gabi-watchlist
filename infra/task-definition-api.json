@@ -1,0 +1,35 @@
+{
+  "family": "watchlist-api-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::172560331362:role/LabRole",
+  "taskRoleArn": "arn:aws:iam::172560331362:role/LabRole",
+  "containerDefinitions": [
+    {
+      "name": "watchlist-api",
+      "image": "172560331362.dkr.ecr.us-east-1.amazonaws.com/gabi-watchlist-api:latest",
+      "essential": true,
+      "portMappings": [
+        { "containerPort": 80, "protocol": "tcp" }
+      ],
+      "environment": [
+        { "name": "DB_HOST",     "value": "<RDS_ENDPOINT>" },
+        { "name": "DB_PORT",     "value": "5432" },
+        { "name": "DB_USER",     "value": "postgres" },
+        { "name": "DB_PASSWORD", "value": "<DB_PASSWORD>" },
+        { "name": "DB_NAME",     "value": "watchlist" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/watchlist-api",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs",
+          "awslogs-create-group": "true"
+        }
+      }
+    }
+  ]
+}
